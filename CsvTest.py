@@ -85,7 +85,7 @@ class FileDb:
 
 class DirWalker:
     filedb = FileDb ()
-
+    errors = []
 
     def walk (self, dir):
         walk (dir, self.visit, self)
@@ -93,10 +93,9 @@ class DirWalker:
     def visit (self, arg, dirname, names):
         for n in names:
             abspath = join (dirname,  n)
-            #print abspath
             if isfile ( abspath ):
                 if not self.filedb.check( abspath ):
-                    print 'Error: Mismatch ', abspath
+                    self.errors.append(abspath) 
                 
             
 
@@ -106,9 +105,9 @@ dw = DirWalker ()
 dw.filedb.load( fdb)
 dw.walk ( '/sdcard/Download')
 # dw.filedb.dump ()
-print dw.filedb.not_visited()
 dw.filedb.save (fdb)
-
+print 'Missing   files: ', dw.filedb.not_visited()
+print 'Content changed: ', dw.errors
 
 
 
