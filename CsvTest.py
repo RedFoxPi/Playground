@@ -2,7 +2,7 @@ import csv
 import hashlib
 from functools import partial
 from os.path import walk, isfile, join
-
+ 
 class FileAttributes:
     '''
     Attributes of a file to be checked and also
@@ -99,15 +99,16 @@ class DirWalker:
                 
             
 
-fdb = '/sdcard/Download/filedb.csv'
-
-dw = DirWalker ()
-dw.filedb.load( fdb)
-dw.walk ( '/sdcard/Download')
-# dw.filedb.dump ()
-dw.filedb.save (fdb)
-print 'Missing   files: ', dw.filedb.not_visited()
-print 'Content changed: ', dw.errors
+if __name__ == '__main__':
+    fdb = '/sdcard/Download/filedb.csv'
+    
+    dw = DirWalker ()
+    dw.filedb.load( fdb)
+    dw.walk ( '/sdcard/Download')
+    # dw.filedb.dump ()
+    dw.filedb.save (fdb)
+    print 'Missing   files: ', dw.filedb.not_visited()
+    print 'Content changed: ', dw.errors
 
 
 
