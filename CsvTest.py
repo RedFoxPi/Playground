@@ -14,6 +14,11 @@ class FileAttributes:
     # Temporary
     visited = False
 
+    def __init__(self):
+        self.md5 =''
+        self.visited = False
+    
+    
     def to_disk (self):
         return [self.md5]
 
@@ -45,6 +50,9 @@ class FileDb:
     Including persistency.
     '''
     mapping = dict ()
+    
+    def __init__(self ):
+        self.mapping = dict ( )
 
     def add (self, filename, attributes):
         self.mapping [filename] = attributes
@@ -86,6 +94,10 @@ class FileDb:
 class DirWalker:
     filedb = FileDb ()
     errors = []
+    
+    def __init__(self):
+        self.filedb = FileDb ()
+        self.errors = [ ]
 
     def walk (self, dir):
         walk (dir, self.visit, self)

@@ -23,7 +23,7 @@ class FileCheckUi(App):
         self.tv.size_hint = 1, None 
         self.tv.bind(minimum_height = self.tv.setter('height')) 
         self.error = self.tv.add_node(TreeViewLabel(text='Errors'))
-        self.mssing = self.tv.add_node(TreeViewLabel(text='Missing'))
+        self.missing = self.tv.add_node(TreeViewLabel(text='Missing'))
         sv.add_widget(self.tv)
         l.add_widget(b)
         l.add_widget(sv)
@@ -40,25 +40,24 @@ class FileCheckUi(App):
         self.list2tree(missing, self.missing)     
 
     def report_clear(self):
-        print 'x'
         if self.error != None:
             while len (self.error.nodes) > 0:
-                print ' Error',len (self.error.nodes)
-                x = self.error.nodes[0]
-                self.tv.remove_node(x)
-                print ' Error', len (self.error.nodes)
+                self.tv.remove_node (self.error.nodes[0])
         if self.missing != None:
-            for w in self.missing.nodes:
-                self.tv.remove_node(w)
+            while len (self.missing.nodes) > 0:
+                self.tv.remove_node(self.missing.nodes[0])
         
     def btn_run(self, value):
         fdb = '/sdcard/Download/filedb.csv'
-        dw = None
-        dw = CsvTest.DirWalker ()
-        dw.filedb.load( fdb)
-        dw.walk ( '/sdcard/Download')
-        dw.filedb.save (fdb)
-        self.report( dw.errors, dw.filedb.not_visited())
+        self.dw = None
+        self.dw = CsvTest.DirWalker ()
+        print 'xxx0', self.dw.errors
+        self.dw.filedb.load( fdb)
+        print 'xxx1', self.dw.errors
+        self.dw.walk ( '/sdcard/Download')
+        print 'xxx2', self.dw.errors
+        self.dw.filedb.save (fdb)
+        self.report( self.dw.errors, self.dw.filedb.not_visited())
         
         
 
