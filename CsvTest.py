@@ -1,7 +1,7 @@
 import csv
 import hashlib
 from functools import partial
-from os.path import walk, isfile, join
+from os.path import walk, isfile, join, relpath
  
 class FileAttributes:
     '''
@@ -53,12 +53,17 @@ class FileDb:
     '''
     mapping = dict ()
     
-    errors =[]
-    added=[]
+    errors = []
+    added = []
+    basepath = ''
     
-    def __init__(self ):
+    def __init__(self, basepath = ''):
+        self.basepath = basepath
         self.mapping = dict ( )
         self.reset_visited ()
+        
+    def relpath(self, abspath):
+        return relpath(abspath, self.basepath)
         
     def reset_visited (self):
         self.errors = []
@@ -68,13 +73,14 @@ class FileDb:
 
     def add (self, filename, attributes):
         self.added.append (filename)
-        self.mapping [filename] = attributes
+        self.mapping [self.relpath(filename)] = attributes
 
     def check (self, filename):
         attr = FileAttributes()
         attr.calc(filename)
-        if filename in self.mapping:
-            if self.mapping[filename].compare(attr):
+        relfn = self.relpath(filename)
+        if relfn in self.mapping:
+            if self.mapping[relfn].compare(attr):
                 return True
             else:
                 self.errors.append ( filename)
@@ -85,32 +91,38 @@ class FileDb:
 
 
     def save (self, filename):
-        with open(filename, 'wb') as csvfile: 
+        with open(filename, 'wb') as csvfile:
             writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
             for f in self.mapping:
                 writer.writerow ([f] + self.mapping[f].to_disk())
 
     def load (self, filename):
         self.reset_visited ()
-        with open ( filename, 'rb') as csvfile:
-            reader = csv.reader(csvfile, quoting=csv.QUOTE_MINIMAL)
-            for entry in reader:
-                self.mapping[entry[0]] = FileAttributes()
-                self.mapping[entry[0]].from_disk(entry[1:])
+        try:
+            with open ( filename, 'rb') as csvfile:
+                reader = csv.reader(csvfile, quoting=csv.QUOTE_MINIMAL)
+                for entry in reader:
+                    self.mapping[entry[0]] = FileAttributes()
+                    self.mapping[entry[0]].from_disk(entry[1:])
+        except IOError:
+            self.mapping = dict()
+            return False
+        return True
+            
 
     def dump (self):
         print self.mapping
 
     def not_visited (self):
-        return [ i for i in self.mapping if not self.mapping[i].visited ]
+        return [ join(self.basepath, i) for i in self.mapping if not self.mapping[i].visited ]
 
 
 
 class DirWalker:
     filedb = FileDb ()
     
-    def __init__(self):
-        self.filedb = FileDb ()
+    def __init__(self, basepath = ''):
+        self.filedb = FileDb (basepath)
 
     def walk (self, dir):
         self.filedb.reset_visited ()
@@ -125,11 +137,15 @@ class DirWalker:
             
 
 if __name__ == '__main__':
-    fdb = '/sdcard/Download/filedb.csv'
+    #fdb = '/sdcard/Download/filedb.csv'
+
+    bp = 'C:\\Users\\Diana\\Desktop\\Daniel\\'
+    fdb = join(bp, 'filedb.csv')
+    cdir = join(bp, 'GPS alt')
     
-    dw = DirWalker ()
-    dw.filedb.load( fdb)
-    dw.walk ( '/sdcard/Download')
+    dw = DirWalker(bp)
+    dw.filedb.load(fdb)
+    dw.walk(cdir)
     # dw.filedb.dump ()
     dw.filedb.save (fdb)
     print 'Missing   files: ', dw.filedb.not_visited()
