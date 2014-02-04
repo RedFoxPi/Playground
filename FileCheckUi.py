@@ -8,8 +8,6 @@ import CsvTest
 
 class FileCheckUi(App):
     tv = None
-    error = None
-    missing = None
 
 
     def build(self):
@@ -22,42 +20,36 @@ class FileCheckUi(App):
         self.tv = TreeView(root_options=dict(text='Results'))
         self.tv.size_hint = 1, None 
         self.tv.bind(minimum_height = self.tv.setter('height')) 
-        self.error = self.tv.add_node(TreeViewLabel(text='Errors'))
-        self.missing = self.tv.add_node(TreeViewLabel(text='Missing'))
         sv.add_widget(self.tv)
         l.add_widget(b)
         l.add_widget(sv)
         return l
 
-    def list2tree(self, lst, tvn):
+    def list2tree(self, lbl, lst):
+        tvn = self.tv.add_node(TreeViewLabel(text=lbl))
         for t in lst:
-           print t
            self.tv.add_node(TreeViewLabel(text=t), tvn)
  
-    def report(self, error, missing):
+    def report(self, added, error, missing):
         self.report_clear ()
-        self.list2tree(error, self.error )
-        self.list2tree(missing, self.missing)     
+        self.list2tree ('Added', added)
+        self.list2tree('Error', error)
+        self.list2tree('Missing', missing)     
 
     def report_clear(self):
-        if self.error != None:
-            while len (self.error.nodes) > 0:
-                self.tv.remove_node (self.error.nodes[0])
-        if self.missing != None:
-            while len (self.missing.nodes) > 0:
-                self.tv.remove_node(self.missing.nodes[0])
-        
+        while len (self.tv.root.nodes) > 0:
+                self.tv.remove_node (self.tv.root.nodes[0])
+ 
     def btn_run(self, value):
         fdb = '/sdcard/Download/filedb.csv'
         self.dw = None
         self.dw = CsvTest.DirWalker ()
-        print 'xxx0', self.dw.errors
         self.dw.filedb.load( fdb)
-        print 'xxx1', self.dw.errors
         self.dw.walk ( '/sdcard/Download')
-        print 'xxx2', self.dw.errors
         self.dw.filedb.save (fdb)
-        self.report( self.dw.errors, self.dw.filedb.not_visited())
+        self.report( self.dw.filedb.added,
+            self.dw.filedb.errors, 
+            self.dw.filedb.not_visited())
         
         
 

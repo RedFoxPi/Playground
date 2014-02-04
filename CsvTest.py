@@ -17,7 +17,9 @@ class FileAttributes:
     def __init__(self):
         self.md5 =''
         self.visited = False
-    
+        
+    def reset_visited (self):
+        self.visited = False
     
     def to_disk (self):
         return [self.md5]
@@ -51,10 +53,21 @@ class FileDb:
     '''
     mapping = dict ()
     
+    errors =[]
+    added=[]
+    
     def __init__(self ):
         self.mapping = dict ( )
+        self.reset_visited ()
+        
+    def reset_visited (self):
+        self.errors = []
+        self.added = []
+        for a in self.mapping.itervalues ():
+            a.reset_visited ()
 
     def add (self, filename, attributes):
+        self.added.append (filename)
         self.mapping [filename] = attributes
 
     def check (self, filename):
@@ -64,6 +77,7 @@ class FileDb:
             if self.mapping[filename].compare(attr):
                 return True
             else:
+                self.errors.append ( filename)
                 return False
         else:
             self.add (filename, attr)
@@ -77,6 +91,7 @@ class FileDb:
                 writer.writerow ([f] + self.mapping[f].to_disk())
 
     def load (self, filename):
+        self.reset_visited ()
         with open ( filename, 'rb') as csvfile:
             reader = csv.reader(csvfile, quoting=csv.QUOTE_MINIMAL)
             for entry in reader:
@@ -93,21 +108,19 @@ class FileDb:
 
 class DirWalker:
     filedb = FileDb ()
-    errors = []
     
     def __init__(self):
         self.filedb = FileDb ()
-        self.errors = [ ]
 
     def walk (self, dir):
+        self.filedb.reset_visited ()
         walk (dir, self.visit, self)
 
     def visit (self, arg, dirname, names):
         for n in names:
             abspath = join (dirname,  n)
             if isfile ( abspath ):
-                if not self.filedb.check( abspath ):
-                    self.errors.append(abspath) 
+                self.filedb.check( abspath )
                 
             
 
@@ -120,7 +133,8 @@ if __name__ == '__main__':
     # dw.filedb.dump ()
     dw.filedb.save (fdb)
     print 'Missing   files: ', dw.filedb.not_visited()
-    print 'Content changed: ', dw.errors
+    print 'Content changed: ', dw.filedb.errors
+    print 'Added     files: ', dw.filedb.added
 
 
 
