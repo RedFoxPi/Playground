@@ -1,0 +1,21 @@
+
+New Th4ead Deaign
+
+one UI Thread
+- set top level directory and exclusion
+- launch and show progress
+- show results
+
+one Main Worker
+- walk through directories for each
+  - pass all files to slave workers (split set by number? size?)
+  - retrieve stored content from database (also by slave)
+  - put all subdirectories onto a stack for directory walk
+  - compare results from slaves
+
+db slave
+- retrieve content from database for a directory
+
+directory slave
+- calculate md5 for a list of files
+
